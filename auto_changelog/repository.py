@@ -19,6 +19,7 @@ class GitRepository(RepositoryInterface):
         skip_unreleased: bool = True,
         tag_prefix: str = "",
         tag_pattern: Optional[str] = None,
+
     ):
         self.repository = Repo(repository_path)
         self.tag_prefix = tag_prefix
@@ -38,6 +39,7 @@ class GitRepository(RepositoryInterface):
         diff_url: Optional[str] = None,
         starting_commit: str = "",
         stopping_commit: str = "HEAD",
+        ignore: str = ""
     ) -> Changelog:
         locallogger = logging.getLogger("repository.generate_changelog")
         issue_url = issue_url or self._issue_from_git_remote_url(remote)
@@ -76,7 +78,7 @@ class GitRepository(RepositoryInterface):
 
             if commit in self.commit_tags_index:
                 #проверяем, есть ли в сообщении коммита слова которые нужно игнорировать, если да пропускаем коммит и выводим лог
-                if is_part_in_list(commit):
+                if is_part_in_list(commit, ignore=ignore):
                     locallogger.debug(f"this commit got ignore words\n{commit}")
                     continue
                 attributes = self._extract_release_args(commit, self.commit_tags_index[commit])

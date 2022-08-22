@@ -75,6 +75,10 @@ def validate_template(ctx, param, value):
     is_flag=True,
     help="set logging level to DEBUG",
 )
+@click.option(
+    "-i", "--ignore",
+    help="ignore the following words, example -i 'omg, attach, merge'",
+)
 def main(
     path_repo,
     gitlab,
@@ -95,6 +99,7 @@ def main(
     starting_commit: str,
     stopping_commit: str,
     debug: bool,
+    ignore: str
 ):
     if debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -115,6 +120,7 @@ def main(
         skip_unreleased=not unreleased,
         tag_prefix=tag_prefix,
         tag_pattern=tag_pattern,
+        ignore=ignore
     )
     presenter = MarkdownPresenter(template=template)
     changelog = generate_changelog(
