@@ -4,6 +4,7 @@ import auto_changelog
 from datetime import date
 from hashlib import sha256
 from typing import Dict, List, Tuple, Any, Optional
+from helpers import is_part_in_list
 
 from git import Repo, Commit, TagReference
 
@@ -74,6 +75,10 @@ class GitRepository(RepositoryInterface):
             first_commit = False
 
             if commit in self.commit_tags_index:
+                #проверяем, есть ли в сообщении коммита слова которые нужно игнорировать, если да пропускаем коммит и выводим лог
+                if is_part_in_list(commit):
+                    locallogger.debug(f"this commit got ignore words\n{commit}")
+                    continue
                 attributes = self._extract_release_args(commit, self.commit_tags_index[commit])
                 locallogger.debug("Adding release '{}' with attributes {}".format(attributes[0], attributes))
                 changelog.add_release(*attributes)
@@ -213,7 +218,14 @@ class GitRepository(RepositoryInterface):
     def _parse_conventional_commit(message: str) -> Tuple[str, str, str, str, str]:
         type_ = scope = description = body_footer = body = footer = ""
         # TODO this is less restrictive version of re. I have somewhere more restrictive one, maybe as option?
-        match = re.match(r"^(\w+)(\(\w+\))?!?: (.*)(\n\n[\w\W]*)?$", message.strip())
+        # в этом месте парсится коммит сообщение,
+        # для того чтобы выполнить первое практическое задание нужно переписать регулярное выражение
+        # на самом деле я не до конца разобрался с тем как работает этот функционал утилиты, потому что не нашел
+        # примеров в документации, но вот это похоже на то о чем я подумал прочитав ТЗ
+        # если не так, было бы здорово получить еще информацию по функционалу и могу переписать
+        # r"^(fix|test|new_feature|...|....)\(\w+\)$"
+        match = re.match(r"^(fix|test|new_feature)\(\w+\)$", message.strip())
+
         if match:
             type_, scope, description, body_footer = match.groups(default="")
         else:
